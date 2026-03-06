@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1121" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <title>Momentum Logger</title>
+  <style>
+    :root {
+      --bg: #0b1121;
+      --surface: #141d30;
+      --surface-2: #1a2540;
+      --border: #1e2d4a;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --dim: #64748b;
+      --green: #22c55e;
+      --green-dim: #15803d;
+      --blue: #60a5fa;
+      --blue-dim: #2563eb;
+      --amber: #f59e0b;
+      --amber-dim: #b45309;
+      --purple: #a78bfa;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+
+    .app {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 0 16px env(safe-area-inset-bottom);
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 16px 0 8px;
+    }
+    header h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: -0.02em; }
+    .date-pill {
+      font-size: 0.82rem;
+      color: var(--muted);
+      background: var(--surface);
+      padding: 4px 10px;
+      border-radius: 99px;
+      border: 1px solid var(--border);
+    }
+
+    section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin: 12px 0;
+    }
+
+    /* Timer */
+    .timer-display { text-align: center; padding: 16px 0 12px; }
+    .timer-time {
+      font-size: 3.5rem;
+      font-weight: 300;
+      letter-spacing: 0.02em;
+      font-variant-numeric: tabular-nums;
+      font-family: 'SF Mono', ui-monospace, Menlo, monospace;
+      line-height: 1;
+      transition: color 0.3s;
+    }
+    .timer-time.running { color: var(--green); }
+    .timer-time.paused { color: var(--amber); }
+    .timer-status { font-size: 0.78rem; color: var(--dim); margin-top: 8px; }
+
+    /* Buttons */
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 52px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:active { transform: scale(0.97); opacity: 0.85; }
+    .btn[disabled] { opacity: 0.35; pointer-events: none; }
+    .btn-accent { background: #1e3a5f; border-color: var(--blue-dim); color: var(--blue); }
+    .btn-green { background: #052e16; border-color: var(--green-dim); color: #86efac; }
+    .btn-amber { background: #422006; border-color: var(--amber-dim); color: #fde68a; }
+    .btn-ghost { background: transparent; border-color: var(--border); color: var(--muted); }
+
+    .btn-row { display: flex; gap: 10px; }
+    .btn-row .btn { flex: 1; }
+
+    /* Form */
+    .field { margin-top: 14px; }
+    .field-label { font-size: 0.82rem; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+    .input, .select {
+      width: 100%;
+      min-height: 48px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+    }
+    .select {
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+    }
+    .input:focus, .select:focus { border-color: var(--blue); }
+
+    .manual-row { display: flex; gap: 10px; margin-top: 10px; }
+    .manual-row .input { width: 90px; flex-shrink: 0; }
+    .manual-row .btn { flex: 1; }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 16px 0;
+      color: var(--dim);
+      font-size: 0.8rem;
+    }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* Stats */
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+    .stat {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      border-left: 3px solid var(--border);
+    }
+    .stat-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .stat-value { font-size: 1.3rem; font-weight: 600; margin-top: 2px; }
+    .stat.easy { border-left-color: var(--green); }
+    .stat.easy .stat-value { color: var(--green); }
+    .stat.intense { border-left-color: var(--amber); }
+    .stat.intense .stat-value { color: var(--amber); }
+    .stat.focus { border-left-color: var(--blue); }
+    .stat.focus .stat-value { color: var(--blue); }
+    .stat.bed { border-left-color: var(--purple); }
+    .stat.bed .stat-value { color: var(--purple); }
+
+    /* Log entries */
+    .log-list { margin-top: 14px; }
+    .log-entry {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .log-entry:last-child { border-bottom: none; }
+    .log-time { font-size: 0.85rem; color: var(--dim); font-variant-numeric: tabular-nums; flex-shrink: 0; width: 52px; }
+    .log-body { flex: 1; min-width: 0; }
+    .log-metric { font-weight: 500; font-size: 0.92rem; }
+    .log-note { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+    .log-mins { font-size: 0.85rem; color: var(--muted); flex-shrink: 0; }
+
+    .empty { text-align: center; color: var(--dim); font-size: 0.88rem; padding: 16px 0; }
+
+    /* Section title */
+    .section-title { font-weight: 600; font-size: 0.95rem; }
+
+    /* Past days */
+    details summary {
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    details summary::-webkit-details-marker { display: none; }
+    details summary::before { content: '\25B8'; transition: transform 0.2s; }
+    details[open] summary::before { transform: rotate(90deg); }
+    .past-entry { padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .past-entry:last-child { border-bottom: none; }
+    .past-date { font-weight: 600; font-size: 0.9rem; }
+    .past-summary { font-size: 0.82rem; color: var(--muted); margin-top: 2px; }
+
+    .footer { padding: 8px 0 24px; text-align: center; }
+    .footer .btn { background: transparent; border-color: var(--border); color: var(--muted); font-weight: 500; font-size: 0.9rem; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--surface-2);
+      border: 1px solid var(--green-dim);
+      color: #86efac;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      opacity: 0;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      z-index: 100;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Momentum</h1>
+      <span class="date-pill" id="datePill"></span>
+    </header>
+
+    <section>
+      <div class="timer-display">
+        <div class="timer-time" id="timer">00:00:00</div>
+        <div class="timer-status" id="wakelockState">Wake lock: off</div>
+      </div>
+      <div class="btn-row" id="timerControls">
+        <button class="btn btn-accent" id="startBtn">Start</button>
+        <button class="btn btn-amber" id="pauseBtn" hidden>Pause</button>
+        <button class="btn btn-accent" id="resumeBtn" hidden>Resume</button>
+        <button class="btn btn-ghost" id="resetBtn" hidden>Reset</button>
+      </div>
+    </section>
+
+    <section>
+      <div class="field" style="margin-top:0">
+        <div class="field-label">Metric</div>
+        <select class="select" id="metric">
+          <option value="walking_easy">Walking (easy) - 30m, 2.5-3 km/h</option>
+          <option value="walking_intense">Walking (intense) - 15m, 4.5-5 km/h</option>
+          <option value="focused_work">Focused work</option>
+          <option value="shutdown">Shutdown done</option>
+          <option value="bedtime">Bedtime</option>
+          <option value="custom">Custom...</option>
+        </select>
+      </div>
+
+      <div class="field" id="customWrap" hidden>
+        <div class="field-label">Custom metric name</div>
+        <input class="input" id="customMetric" placeholder="e.g. Mobility 10m" />
+      </div>
+
+      <div class="field">
+        <div class="field-label">Notes <span style="color:var(--dim)">(optional)</span></div>
+        <input class="input" id="notes" placeholder="Speed, vest, context..." />
+      </div>
+
+      <div id="logTimerField" hidden>
+        <button class="btn btn-green" id="logTimerBtn" style="margin-top:14px">Log timer</button>
+      </div>
+
+      <div class="divider">or log manually</div>
+
+      <div class="manual-row">
+        <input class="input" id="manualMinutes" type="number" min="0" step="1" placeholder="Minutes" />
+        <button class="btn" id="logManualBtn">Log manual</button>
+      </div>
+
+      <div style="margin-top:10px">
+        <button class="btn btn-ghost" id="bedNowBtn">Log bedtime now</button>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">Today</div>
+      <div class="stats" id="stats"></div>
+      <div class="log-list" id="todayLogs"></div>
+    </section>
+
+    <section>
+      <details id="pastDetails">
+        <summary>Past 14 days</summary>
+        <div id="pastLogs" style="margin-top:10px"></div>
+      </details>
+    </section>
+
+    <div class="footer">
+      <button class="btn" id="exportBtn">Export JSON</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+var STORAGE_KEY = 'momentum_logger_v1';
+var state = { running: false, paused: false, elapsedMs: 0, lastTick: null, wakeLock: null };
+
+var $ = function(id) { return document.getElementById(id); };
+var genId = function() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); };
+var esc = function(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
+
+function todayISO() {
+  var d = new Date();
+  return d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0');
+}
+
+function fmtDur(ms) {
+  var s = Math.floor(ms / 1000);
+  return [Math.floor(s / 3600), Math.floor((s % 3600) / 60), s % 60]
+    .map(function(n) { return String(n).padStart(2, '0'); }).join(':');
+}
+
+var fmtHm = function(d) { return new Date(d).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); };
+var load = function() { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"logs":[]}'); };
+var save = function(d) { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); };
+
+var LABELS = {
+  walking_easy: 'Walking (easy)',
+  walking_intense: 'Walking (intense)',
+  focused_work: 'Focused work',
+  shutdown: 'Shutdown done',
+  bedtime: 'Bedtime'
+};
+
+function lastItem(arr) {
+  return arr.length > 0 ? arr[arr.length - 1] : undefined;
+}
+
+function totalElapsedMs() {
+  return state.elapsedMs + (state.running && !state.paused ? Date.now() - state.lastTick : 0);
+}
+
+function setTimerText() {
+  var ms = totalElapsedMs();
+  $('timer').textContent = fmtDur(ms);
+
+  var field = $('logTimerField');
+  var btn = $('logTimerBtn');
+
+  if (!state.running) {
+    field.hidden = true;
+    return;
+  }
+
+  field.hidden = false;
+  var mins = Math.round(ms / 60000);
+  if (mins > 0) {
+    btn.textContent = 'Log timer (' + mins + 'm)';
+    btn.disabled = false;
+  } else {
+    btn.textContent = 'Log timer (< 1m)';
+    btn.disabled = true;
+  }
+}
+
+function tick() {
+  if (state.running && !state.paused) {
+    setTimerText();
+    requestAnimationFrame(tick);
+  }
+}
+
+function updateTimerUI() {
+  $('startBtn').hidden = state.running;
+  $('pauseBtn').hidden = !state.running || state.paused;
+  $('resumeBtn').hidden = !state.running || !state.paused;
+  $('resetBtn').hidden = !state.running;
+
+  var el = $('timer');
+  el.classList.toggle('running', state.running && !state.paused);
+  el.classList.toggle('paused', state.running && state.paused);
+}
+
+function resetTimer() {
+  state.running = false;
+  state.paused = false;
+  state.elapsedMs = 0;
+  state.lastTick = null;
+  setTimerText();
+  updateTimerUI();
+  releaseWakeLock();
+}
+
+var toastTimer = null;
+function showToast(msg) {
+  var el = $('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function() { el.classList.remove('show'); }, 2200);
+}
+
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      state.wakeLock = await navigator.wakeLock.request('screen');
+      $('wakelockState').textContent = 'Wake lock: on';
+      state.wakeLock.addEventListener('release', function() { $('wakelockState').textContent = 'Wake lock: off'; });
+    } else {
+      $('wakelockState').textContent = 'Wake lock: unsupported';
+    }
+  } catch (e) { $('wakelockState').textContent = 'Wake lock: blocked'; }
+}
+
+async function releaseWakeLock() {
+  if (state.wakeLock) {
+    try { await state.wakeLock.release(); } catch (e) {}
+    state.wakeLock = null;
+    $('wakelockState').textContent = 'Wake lock: off';
+  }
+}
+
+document.addEventListener('visibilitychange', async function() {
+  if (document.visibilityState === 'visible' && state.running && !state.paused) {
+    await requestWakeLock();
+    tick();
+  }
+});
+
+function addLog(entry) {
+  var db = load();
+  db.logs.push(entry);
+  save(db);
+  render();
+}
+
+function currentMetric() {
+  var m = $('metric').value;
+  var custom = $('customMetric').value.trim();
+  return {
+    metric: m === 'custom' ? custom || 'Custom' : m,
+    label: m === 'custom' ? custom || 'Custom' : LABELS[m] || m
+  };
+}
+
+function logFromTimer() {
+  var mins = Math.round(totalElapsedMs() / 60000);
+  if (mins <= 0) return;
+  var cm = currentMetric();
+  addLog({ id: genId(), ts: new Date().toISOString(), day: todayISO(), metric: cm.metric, label: cm.label, minutes: mins, notes: $('notes').value.trim(), source: 'timer' });
+  showToast(cm.label + ' \u00B7 ' + mins + 'm logged');
+  $('notes').value = '';
+  resetTimer();
+}
+
+function logManual() {
+  var cm = currentMetric();
+  var mins = Math.max(0, Number($('manualMinutes').value || 0));
+  addLog({ id: genId(), ts: new Date().toISOString(), day: todayISO(), metric: cm.metric, label: cm.label, minutes: mins, notes: $('notes').value.trim(), source: 'manual' });
+  showToast(cm.label + (mins ? ' \u00B7 ' + mins + 'm' : '') + ' logged');
+  $('manualMinutes').value = '';
+  $('notes').value = '';
+}
+
+function logBedNow() {
+  addLog({ id: genId(), ts: new Date().toISOString(), day: todayISO(), metric: 'bedtime', label: 'Bedtime', minutes: 0, notes: '', source: 'manual' });
+  showToast('Bedtime logged \u00B7 ' + fmtHm(new Date().toISOString()));
+}
+
+function render() {
+  $('datePill').textContent = new Date().toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+
+  var db = load();
+  var today = todayISO();
+  var todayLogs = db.logs.filter(function(x) { return x.day === today; }).sort(function(a, b) { return a.ts.localeCompare(b.ts); });
+
+  // Stats
+  var sum = function(name) { return todayLogs.filter(function(x) { return x.metric === name; }).reduce(function(a, b) { return a + (b.minutes || 0); }, 0); };
+  var bedArr = todayLogs.filter(function(x) { return x.metric === 'bedtime'; });
+  var bed = lastItem(bedArr);
+
+  $('stats').innerHTML =
+    '<div class="stat easy"><div class="stat-label">Easy</div><div class="stat-value">' + sum('walking_easy') + 'm</div></div>' +
+    '<div class="stat intense"><div class="stat-label">Intense</div><div class="stat-value">' + sum('walking_intense') + 'm</div></div>' +
+    '<div class="stat focus"><div class="stat-label">Focus</div><div class="stat-value">' + sum('focused_work') + 'm</div></div>' +
+    '<div class="stat bed"><div class="stat-label">Bedtime</div><div class="stat-value">' + (bed ? fmtHm(bed.ts) : '\u2014') + '</div></div>';
+
+  // Today's entries
+  if (todayLogs.length === 0) {
+    $('todayLogs').innerHTML = '<div class="empty">No logs yet today</div>';
+  } else {
+    $('todayLogs').innerHTML = todayLogs.map(function(l) {
+      return '<div class="log-entry">' +
+        '<span class="log-time">' + fmtHm(l.ts) + '</span>' +
+        '<div class="log-body"><div class="log-metric">' + esc(l.label) + '</div>' +
+        (l.notes ? '<div class="log-note">' + esc(l.notes) + '</div>' : '') +
+        '</div>' +
+        (l.minutes ? '<span class="log-mins">' + l.minutes + 'm</span>' : '') +
+      '</div>';
+    }).join('');
+  }
+
+  // Past days
+  var grouped = {};
+  db.logs.forEach(function(l) { if (l.day !== today) { (grouped[l.day] = grouped[l.day] || []).push(l); } });
+  var pastDays = Object.keys(grouped).sort().reverse().slice(0, 14);
+
+  if (pastDays.length === 0) {
+    $('pastLogs').innerHTML = '<div class="empty">No past logs</div>';
+  } else {
+    $('pastLogs').innerHTML = pastDays.map(function(d) {
+      var arr = grouped[d];
+      var e = arr.filter(function(x) { return x.metric === 'walking_easy'; }).reduce(function(a, b) { return a + (b.minutes || 0); }, 0);
+      var i = arr.filter(function(x) { return x.metric === 'walking_intense'; }).reduce(function(a, b) { return a + (b.minutes || 0); }, 0);
+      var f = arr.filter(function(x) { return x.metric === 'focused_work'; }).reduce(function(a, b) { return a + (b.minutes || 0); }, 0);
+      var bArr = arr.filter(function(x) { return x.metric === 'bedtime'; });
+      var b = lastItem(bArr);
+      return '<div class="past-entry"><div class="past-date">' + d + '</div>' +
+        '<div class="past-summary">Easy ' + e + 'm \u00B7 Intense ' + i + 'm \u00B7 Focus ' + f + 'm \u00B7 Bed ' + (b ? fmtHm(b.ts) : '\u2014') + '</div></div>';
+    }).join('');
+  }
+}
+
+// Events
+$('metric').addEventListener('change', function() { $('customWrap').hidden = $('metric').value !== 'custom'; });
+
+$('startBtn').addEventListener('click', async function() {
+  if (state.running) return;
+  state.running = true;
+  state.paused = false;
+  state.lastTick = Date.now();
+  updateTimerUI();
+  await requestWakeLock();
+  tick();
+});
+
+$('pauseBtn').addEventListener('click', async function() {
+  if (!state.running || state.paused) return;
+  state.elapsedMs += Date.now() - state.lastTick;
+  state.paused = true;
+  setTimerText();
+  updateTimerUI();
+  await releaseWakeLock();
+});
+
+$('resumeBtn').addEventListener('click', async function() {
+  if (!state.running || !state.paused) return;
+  state.paused = false;
+  state.lastTick = Date.now();
+  updateTimerUI();
+  await requestWakeLock();
+  tick();
+});
+
+$('resetBtn').addEventListener('click', resetTimer);
+$('logTimerBtn').addEventListener('click', logFromTimer);
+$('logManualBtn').addEventListener('click', logManual);
+$('bedNowBtn').addEventListener('click', logBedNow);
+
+$('exportBtn').addEventListener('click', function() {
+  var blob = new Blob([JSON.stringify(load(), null, 2)], { type: 'application/json' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'momentum-' + todayISO() + '.json';
+  a.click();
+});
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(function() {});
+
+render();
+setTimerText();
+updateTimerUI();
+</script>
+</body>
+</html>
