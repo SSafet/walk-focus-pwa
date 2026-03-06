@@ -457,6 +457,54 @@
       opacity: 1;
     }
 
+    /* Share modal */
+    .modal-bg {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .modal {
+      background: var(--surface);
+      border-radius: 20px;
+      padding: 28px 24px;
+      width: 100%;
+      max-width: 340px;
+      text-align: center;
+    }
+    .modal-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+    .modal-qr {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px;
+      display: inline-block;
+      margin-bottom: 16px;
+    }
+    .modal-qr img {
+      display: block;
+      width: 200px;
+      height: 200px;
+    }
+    .modal-hint {
+      font-size: 0.78rem;
+      color: var(--text-3);
+      margin-bottom: 20px;
+    }
+    .modal-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .modal-actions .pill { height: 44px; font-size: 0.85rem; }
+
     [hidden] { display: none !important; }
   </style>
 </head>
@@ -532,8 +580,24 @@
       <div id="metricManageList"></div>
     </div>
 
-    <div class="export-area">
-      <button class="export-btn" id="exportBtn">Export JSON</button>
+    <div class="manage-group">
+      <div class="manage-head">Sync</div>
+      <div style="display:flex;gap:8px">
+        <button class="export-btn" id="shareBtn" style="flex:1">Share config (QR)</button>
+        <button class="export-btn" id="exportBtn" style="flex:1">Export JSON</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-bg" id="shareModal" hidden>
+    <div class="modal">
+      <div class="modal-title">Scan to sync config</div>
+      <div class="modal-qr"><img id="qrImg" alt="QR Code" width="200" height="200" /></div>
+      <div class="modal-hint">Scan with your phone camera to import metrics &amp; quotes</div>
+      <div class="modal-actions">
+        <button class="pill pill-full pill-ghost" id="copyLinkBtn">Copy link</button>
+        <button class="pill pill-full pill-ghost" id="closeModalBtn">Close</button>
+      </div>
     </div>
   </div>
 
@@ -931,10 +995,80 @@ $('exportBtn').addEventListener('click', function() {
   a.download = 'momentum-' + todayISO() + '.json'; a.click();
 });
 
+// Share config QR
+function getShareURL() {
+  var db = load();
+  var config = { metrics: db.metrics, quotes: db.quotes };
+  var json = JSON.stringify(config);
+  var encoded = btoa(unescape(encodeURIComponent(json)));
+  return location.origin + location.pathname + '#import=' + encoded;
+}
+
+$('shareBtn').addEventListener('click', function() {
+  var url = getShareURL();
+  $('qrImg').src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=0&data=' + encodeURIComponent(url);
+  $('shareModal').hidden = false;
+});
+
+$('copyLinkBtn').addEventListener('click', function() {
+  var url = getShareURL();
+  navigator.clipboard.writeText(url).then(function() {
+    showToast('Link copied');
+  }).catch(function() {
+    showToast('Copy failed');
+  });
+});
+
+$('closeModalBtn').addEventListener('click', function() {
+  $('shareModal').hidden = true;
+});
+
+$('shareModal').addEventListener('click', function(e) {
+  if (e.target === this) this.hidden = true;
+});
+
+// Import config from URL hash
+function checkImport() {
+  if (!location.hash || !location.hash.startsWith('#import=')) return;
+  try {
+    var raw = location.hash.slice(8);
+    var json = decodeURIComponent(escape(atob(raw)));
+    var config = JSON.parse(json);
+    var db = load();
+
+    var imported = 0;
+    if (config.metrics && config.metrics.length) {
+      var existingNames = db.metrics.map(function(m) { return m.name; });
+      config.metrics.forEach(function(m) {
+        if (existingNames.indexOf(m.name) === -1) {
+          db.metrics.push(m);
+          existingNames.push(m.name);
+          imported++;
+        }
+      });
+    }
+    if (config.quotes && config.quotes.length) {
+      config.quotes.forEach(function(q) {
+        if (db.quotes.indexOf(q) === -1) {
+          db.quotes.push(q);
+          imported++;
+        }
+      });
+    }
+
+    save(db);
+    history.replaceState(null, '', location.pathname);
+    showToast('Imported ' + imported + ' items');
+  } catch (e) {
+    showToast('Import failed');
+  }
+}
+
 // SW
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(function() {});
 
 // Init
+checkImport();
 var db = load();
 if (db.metrics.length > 0) selectedMetricId = db.metrics[0].id;
 renderAll();

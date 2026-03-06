@@ -1,4 +1,4 @@
-const CACHE = 'momentum-v5';
+const CACHE = 'momentum-v6';
 self.addEventListener('install', e => {
   self.skipWaiting();
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', './index.html', './manifest.webmanifest', './sw.js'])));
