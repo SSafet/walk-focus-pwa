@@ -3,35 +3,22 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0a0e1a" />
+  <meta name="theme-color" content="#0c0c0c" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <title>Momentum Logger</title>
+  <title>Momentum</title>
   <style>
     :root {
-      --bg: #0a0e1a;
-      --surface: #12172a;
-      --surface-2: #1a2038;
-      --border: #1f2940;
-      --border-light: #283350;
-      --text: #eaf0ff;
-      --muted: #8892b0;
-      --dim: #5a6480;
-      --green: #34d399;
-      --green-soft: #10b981;
-      --green-bg: #062e22;
-      --green-border: #0d5940;
-      --blue: #60a5fa;
-      --blue-bg: #0c2345;
-      --blue-border: #1d4a80;
-      --amber: #fbbf24;
-      --amber-bg: #2e2008;
-      --amber-border: #5c4010;
-      --purple: #a78bfa;
-      --purple-bg: #1a1040;
-      --red-bg: #2a0e12;
-      --red-border: #5c1a24;
+      --bg: #0c0c0c;
+      --surface: #161616;
+      --text: #f0ece4;
+      --text-2: #a8a29e;
+      --text-3: #6b6560;
+      --neutral: rgba(255,255,255,0.06);
+      --neutral-2: rgba(255,255,255,0.1);
+      --danger: rgba(239,68,68,0.12);
+      --danger-text: #f87171;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -47,283 +34,403 @@
     }
 
     .app {
-      max-width: 460px;
+      max-width: 420px;
       margin: 0 auto;
-      padding: 0 20px;
-      padding-bottom: max(20px, env(safe-area-inset-bottom));
+      padding: 0 24px;
+      padding-bottom: max(24px, env(safe-area-inset-bottom));
     }
 
     /* Header */
-    header {
+    .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 20px 0 12px;
     }
-    header h1 {
-      font-size: 1.15rem;
+    .logo {
+      font-size: 1rem;
       font-weight: 700;
-      letter-spacing: -0.01em;
-      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-2);
     }
-    .date-pill {
-      font-size: 0.78rem;
-      color: var(--dim);
-      background: var(--surface);
-      padding: 5px 12px;
-      border-radius: 99px;
-      border: 1px solid var(--border);
+    .date {
+      font-size: 0.8rem;
+      color: var(--text-3);
+      font-weight: 500;
     }
 
-    /* Cards */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 14px;
-    }
+    /* Timer area */
+    .timer-area { text-align: center; padding: 20px 0 28px; }
+    .timer-center { }
 
-    /* Timer */
-    .timer-wrap { text-align: center; padding: 24px 0 20px; }
+    /* Quote */
+    .quote-display {
+      font-size: 0.85rem;
+      color: var(--text-3);
+      font-style: italic;
+      text-align: center;
+      padding: 0 8px 20px;
+      min-height: 0;
+      transition: opacity 0.4s ease;
+      line-height: 1.5;
+    }
+    .quote-display:empty { padding: 0; }
+
     .timer-time {
-      font-size: clamp(2.5rem, 12vw, 3.8rem);
+      font-size: clamp(3rem, 14vw, 4.5rem);
       font-weight: 200;
-      letter-spacing: 0.04em;
-      font-variant-numeric: tabular-nums;
-      font-family: 'SF Mono', ui-monospace, 'Menlo', monospace;
-      line-height: 1;
-      color: var(--dim);
-      transition: color 0.4s ease;
-    }
-    .timer-time.running { color: var(--green); }
-    .timer-time.paused { color: var(--amber); }
-    .timer-sub {
-      font-size: 0.72rem;
-      color: var(--dim);
-      margin-top: 10px;
       letter-spacing: 0.03em;
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+      line-height: 1;
+      transition: all 0.5s ease;
+    }
+    .timer-time.running {
+      color: #4ade80;
+      text-shadow: 0 0 60px rgba(74,222,128,0.3), 0 0 120px rgba(74,222,128,0.1);
+    }
+    .timer-time.paused {
+      color: #fbbf24;
+      text-shadow: 0 0 60px rgba(251,191,36,0.2);
+    }
+    .timer-sub {
+      font-size: 0.7rem;
+      color: var(--text-3);
+      margin-top: 12px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
     }
-
-    /* Buttons */
-    .btn {
+    .timer-actions {
       display: flex;
+      gap: 10px;
+      margin-top: 28px;
+      justify-content: center;
+    }
+
+    /* Pill buttons */
+    .pill {
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      width: 100%;
-      height: 54px;
-      border-radius: 14px;
-      border: 1px solid var(--border);
-      background: var(--surface-2);
-      color: var(--text);
-      font-size: 0.95rem;
+      height: 52px;
+      padding: 0 32px;
+      border-radius: 99px;
+      border: none;
+      font-size: 0.92rem;
       font-weight: 600;
       cursor: pointer;
-      transition: transform 0.12s ease, opacity 0.12s ease;
+      transition: all 0.15s ease;
       -webkit-tap-highlight-color: transparent;
+      font-family: inherit;
       user-select: none;
     }
-    .btn:active { transform: scale(0.96); opacity: 0.8; }
-    .btn[disabled] { opacity: 0.3; pointer-events: none; }
+    .pill:active { transform: scale(0.96); }
+    .pill[disabled] { opacity: 0.3; pointer-events: none; }
+    .pill-full { width: 100%; }
+    .pill-half { flex: 1; }
 
-    .btn-start { background: var(--blue-bg); border-color: var(--blue-border); color: var(--blue); }
-    .btn-green { background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
-    .btn-pause { background: var(--amber-bg); border-color: var(--amber-border); color: var(--amber); }
-    .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
-    .btn-ghost:active { background: var(--surface-2); }
-    .btn-danger { background: var(--red-bg); border-color: var(--red-border); color: #f87171; }
+    .pill-start { background: rgba(147,197,253,0.12); color: #93c5fd; }
+    .pill-pause { background: rgba(251,191,36,0.12); color: #fbbf24; }
+    .pill-log { background: rgba(74,222,128,0.12); color: #4ade80; }
+    .pill-ghost { background: var(--neutral); color: var(--text-2); }
+    .pill-ghost:active { background: var(--neutral-2); }
 
-    .btn-row { display: flex; gap: 10px; }
-    .btn-row .btn { flex: 1; }
-
-    /* Form */
-    .field { margin-top: 16px; }
-    .field:first-child { margin-top: 0; }
-    .field-label {
-      font-size: 0.75rem;
-      color: var(--dim);
-      margin-bottom: 7px;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
+    /* Metric chips */
+    .chips {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 4px 0;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      margin-bottom: 16px;
     }
-    .input, .select {
-      width: 100%;
-      height: 50px;
+    .chips::-webkit-scrollbar { display: none; }
+    .chip {
+      flex-shrink: 0;
+      height: 38px;
+      padding: 0 16px;
+      border-radius: 99px;
+      border: none;
+      background: var(--neutral);
+      color: var(--text-2);
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .chip:active { transform: scale(0.96); }
+    .chip.active { background: var(--text); color: var(--bg); font-weight: 600; }
+    .chip-add {
+      background: var(--neutral);
+      color: var(--text-3);
+      font-size: 1.1rem;
+      font-weight: 400;
       padding: 0 14px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: var(--bg);
+    }
+    .chip-hint {
+      font-size: 0.8rem;
+      color: var(--text-3);
+      margin-bottom: 16px;
+    }
+
+    .chip-input-wrap {
+      margin-bottom: 16px;
+      display: flex;
+      gap: 8px;
+    }
+
+    /* Inputs */
+    .text-input {
+      width: 100%;
+      height: 48px;
+      padding: 0 16px;
+      border-radius: 14px;
+      border: none;
+      background: var(--surface);
+      color: var(--text);
+      font-size: 0.9rem;
+      font-family: inherit;
+      outline: none;
+      transition: box-shadow 0.2s;
+    }
+    .text-input:focus { box-shadow: 0 0 0 2px rgba(147,197,253,0.25); }
+    .text-input::placeholder { color: var(--text-3); }
+
+    .num-input {
+      width: 70px;
+      height: 48px;
+      padding: 0;
+      border-radius: 14px;
+      border: none;
+      background: var(--surface);
       color: var(--text);
       font-size: 0.95rem;
+      font-weight: 600;
+      font-family: inherit;
+      text-align: center;
       outline: none;
-      transition: border-color 0.2s;
+      flex-shrink: 0;
     }
-    .select {
-      appearance: none;
-      -webkit-appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%235a6480' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 14px center;
-      padding-right: 36px;
-    }
-    .input:focus, .select:focus { border-color: var(--blue); }
+    .num-input:focus { box-shadow: 0 0 0 2px rgba(147,197,253,0.25); }
+    .num-input::placeholder { color: var(--text-3); font-weight: 400; }
 
-    .manual-row { display: flex; gap: 10px; }
-    .manual-row .input { width: 80px; flex-shrink: 0; text-align: center; }
-    .manual-row .btn { flex: 1; }
+    /* Actions */
+    .actions { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .action-row { display: flex; gap: 10px; }
 
-    .sep {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin: 18px 0;
-      color: var(--dim);
-      font-size: 0.72rem;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-    .sep::before, .sep::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .spacer { height: 36px; }
 
-    /* Stats */
-    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0 0; }
-    .stat {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px;
-      position: relative;
-      overflow: hidden;
-    }
-    .stat::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 3px;
-      border-radius: 3px 0 0 3px;
-    }
-    .stat-label {
+    /* Section label */
+    .section-label {
       font-size: 0.68rem;
-      color: var(--dim);
+      font-weight: 700;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
+      color: var(--text-3);
+      padding-bottom: 14px;
+    }
+
+    /* Stat badges */
+    .stat-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+    .stat-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 12px;
+      border-radius: 99px;
+      font-size: 0.78rem;
       font-weight: 600;
     }
-    .stat-value { font-size: 1.25rem; font-weight: 700; margin-top: 3px; }
-    .stat.easy::before { background: var(--green); }
-    .stat.easy .stat-value { color: var(--green); }
-    .stat.intense::before { background: var(--amber); }
-    .stat.intense .stat-value { color: var(--amber); }
-    .stat.focus::before { background: var(--blue); }
-    .stat.focus .stat-value { color: var(--blue); }
-    .stat.bed::before { background: var(--purple); }
-    .stat.bed .stat-value { color: var(--purple); }
+    .stat-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 99px;
+      background: currentColor;
+    }
 
     /* Log entries */
-    .section-head {
-      font-weight: 700;
-      font-size: 0.75rem;
-      color: var(--dim);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-    .log-list { margin-top: 12px; }
-    .log-entry {
-      display: flex;
-      align-items: baseline;
-      gap: 10px;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .log-entry:last-child { border-bottom: none; }
-    .log-time {
-      font-size: 0.8rem;
-      color: var(--dim);
-      font-variant-numeric: tabular-nums;
-      flex-shrink: 0;
-      width: 50px;
-    }
-    .log-body { flex: 1; min-width: 0; }
-    .log-metric { font-weight: 500; font-size: 0.88rem; }
-    .log-note { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
-    .log-mins { font-size: 0.82rem; color: var(--muted); flex-shrink: 0; font-weight: 500; }
-
-    .empty { text-align: center; color: var(--dim); font-size: 0.85rem; padding: 20px 0; }
-
-    /* Past days */
-    details summary {
-      cursor: pointer;
-      font-weight: 700;
-      font-size: 0.75rem;
-      color: var(--dim);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      list-style: none;
+    .entry {
       display: flex;
       align-items: center;
-      gap: 6px;
-      user-select: none;
+      gap: 12px;
+      padding: 13px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
     }
-    details summary::-webkit-details-marker { display: none; }
-    details summary::after {
-      content: '';
-      width: 6px;
-      height: 6px;
-      border-right: 2px solid var(--dim);
-      border-bottom: 2px solid var(--dim);
+    .entry:last-child { border-bottom: none; }
+    .entry-bar {
+      width: 4px;
+      height: 28px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+    .entry-body { flex: 1; min-width: 0; }
+    .entry-title { font-size: 0.88rem; font-weight: 500; }
+    .entry-note { font-size: 0.76rem; color: var(--text-3); margin-top: 2px; }
+    .entry-meta { text-align: right; flex-shrink: 0; }
+    .entry-mins { font-size: 0.88rem; font-weight: 600; color: var(--text-2); }
+    .entry-time { font-size: 0.72rem; color: var(--text-3); margin-top: 2px; }
+
+    .empty { text-align: center; color: var(--text-3); font-size: 0.85rem; padding: 20px 0; }
+
+    /* Past days */
+    .past-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 14px 0;
+      border: none;
+      background: none;
+      color: var(--text-3);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .past-arrow {
+      width: 8px; height: 8px;
+      border-right: 2px solid var(--text-3);
+      border-bottom: 2px solid var(--text-3);
       transform: rotate(-45deg);
       transition: transform 0.2s;
     }
-    details[open] summary::after { transform: rotate(45deg); }
-    .past-entry { padding: 10px 0; border-bottom: 1px solid var(--border); }
-    .past-entry:last-child { border-bottom: none; }
-    .past-date { font-weight: 600; font-size: 0.85rem; }
-    .past-summary { font-size: 0.78rem; color: var(--muted); margin-top: 3px; }
+    .past-toggle.open .past-arrow { transform: rotate(45deg); }
+    .past-content { display: none; padding-bottom: 8px; }
+    .past-content.open { display: block; }
+    .past-day { padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .past-day:last-child { border-bottom: none; }
+    .past-day-date { font-size: 0.85rem; font-weight: 600; }
+    .past-day-stats { font-size: 0.76rem; color: var(--text-3); margin-top: 3px; }
 
-    /* Footer */
-    .footer { padding: 4px 0 16px; }
-    .footer .btn {
-      height: 46px;
-      background: transparent;
-      border-color: var(--border);
-      color: var(--dim);
-      font-weight: 500;
+    /* Manage section */
+    .manage-group { margin-bottom: 24px; }
+    .manage-head {
+      font-size: 0.78rem;
+      color: var(--text-2);
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .manage-add {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .manage-add .text-input { flex: 1; height: 44px; font-size: 0.85rem; }
+    .add-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      border: none;
+      background: var(--neutral);
+      color: var(--text-2);
+      font-size: 1.2rem;
+      cursor: pointer;
+      flex-shrink: 0;
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .add-btn:active { background: var(--neutral-2); }
+    .manage-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .manage-item:last-child { border-bottom: none; }
+    .manage-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 99px;
+      flex-shrink: 0;
+    }
+    .manage-text {
+      flex: 1;
       font-size: 0.85rem;
+      color: var(--text-2);
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .del-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: none;
+      background: var(--danger);
+      color: var(--danger-text);
+      font-size: 1rem;
+      cursor: pointer;
+      flex-shrink: 0;
+      font-family: inherit;
+      line-height: 1;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .del-btn:active { opacity: 0.7; }
+    .manage-empty { font-size: 0.82rem; color: var(--text-3); padding: 8px 0; }
+
+    /* Export */
+    .export-area { padding: 4px 0 16px; }
+    .export-btn {
+      width: 100%;
+      height: 44px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: transparent;
+      color: var(--text-3);
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    /* Fullscreen timer */
+    /* Fullscreen */
     body.fullscreen #timerSection {
       position: fixed;
       inset: 0;
+      background: var(--bg);
+      z-index: 50;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      border: none;
-      border-radius: 0;
-      background: var(--bg);
-      z-index: 50;
-      margin: 0;
       padding: 24px;
       padding-top: env(safe-area-inset-top, 24px);
       padding-bottom: env(safe-area-inset-bottom, 24px);
     }
-    body.fullscreen .timer-wrap {
+    body.fullscreen .timer-center {
       flex: 1;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      padding: 0;
     }
     body.fullscreen .timer-time {
-      font-size: clamp(3rem, 16vw, 6rem);
+      font-size: clamp(3.5rem, 18vw, 7rem);
+    }
+    body.fullscreen .quote-display {
+      font-size: 1rem;
+      padding-bottom: 32px;
     }
     body.fullscreen .timer-sub {
-      font-size: 0.82rem;
-      margin-top: 16px;
+      font-size: 0.85rem;
+      margin-top: 20px;
+    }
+    body.fullscreen .timer-actions {
+      margin-top: 48px;
+    }
+    body.fullscreen .timer-actions .pill {
+      height: 58px;
+      padding: 0 40px;
+      font-size: 1rem;
     }
 
     /* Toast */
@@ -332,12 +439,12 @@
       bottom: 32px;
       left: 50%;
       transform: translateX(-50%) translateY(80px);
-      background: var(--green-bg);
-      border: 1px solid var(--green-border);
-      color: var(--green);
+      background: rgba(74,222,128,0.1);
+      border: 1px solid rgba(74,222,128,0.2);
+      color: #4ade80;
       padding: 12px 22px;
-      border-radius: 14px;
-      font-size: 0.88rem;
+      border-radius: 99px;
+      font-size: 0.85rem;
       font-weight: 600;
       opacity: 0;
       transition: transform 0.3s ease, opacity 0.3s ease;
@@ -355,78 +462,78 @@
 </head>
 <body>
   <div class="app">
-    <header>
-      <h1>Momentum</h1>
-      <span class="date-pill" id="datePill"></span>
-    </header>
+    <div class="header">
+      <span class="logo">Momentum</span>
+      <span class="date" id="datePill"></span>
+    </div>
 
-    <div class="card" id="timerSection">
-      <div class="timer-wrap">
+    <div class="timer-area" id="timerSection">
+      <div class="timer-center">
+        <div class="quote-display" id="quoteDisplay"></div>
         <div class="timer-time" id="timer">00:00:00</div>
         <div class="timer-sub" id="wakelockState">Wake lock off</div>
       </div>
-      <div class="btn-row">
-        <button class="btn btn-start" id="startBtn">Start</button>
-        <button class="btn btn-pause" id="pauseBtn" hidden>Pause</button>
-        <button class="btn btn-start" id="resumeBtn" hidden>Resume</button>
-        <button class="btn btn-ghost" id="resetBtn" hidden>Reset</button>
+      <div class="timer-actions">
+        <button class="pill pill-full pill-start" id="startBtn">Start</button>
+        <button class="pill pill-half pill-start" id="resumeBtn" hidden>Resume</button>
+        <button class="pill pill-half pill-pause" id="pauseBtn" hidden>Pause</button>
+        <button class="pill pill-half pill-ghost" id="resetBtn" hidden>Reset</button>
       </div>
     </div>
 
-    <div class="card">
-      <div class="field">
-        <div class="field-label">Metric</div>
-        <select class="select" id="metric">
-          <option value="walking_easy">Walking (easy) - 30m, 2.5-3 km/h</option>
-          <option value="walking_intense">Walking (intense) - 15m, 4.5-5 km/h</option>
-          <option value="focused_work">Focused work</option>
-          <option value="shutdown">Shutdown done</option>
-          <option value="bedtime">Bedtime</option>
-          <option value="custom">Custom...</option>
-        </select>
+    <div class="chips" id="metricChips"></div>
+    <div class="chip-input-wrap" id="chipInputWrap" hidden>
+      <input class="text-input" id="newMetricInput" placeholder="Metric name..." style="height:38px;font-size:0.85rem;border-radius:99px;padding:0 16px" />
+    </div>
+
+    <input class="text-input" id="notes" placeholder="Add a note..." />
+
+    <div class="actions">
+      <div id="logTimerField" hidden>
+        <button class="pill pill-full pill-log" id="logTimerBtn">Log timer</button>
       </div>
-
-      <div class="field" id="customWrap" hidden>
-        <div class="field-label">Custom name</div>
-        <input class="input" id="customMetric" placeholder="e.g. Mobility 10m" />
-      </div>
-
-      <div class="field">
-        <div class="field-label">Notes</div>
-        <input class="input" id="notes" placeholder="Optional" />
-      </div>
-
-      <div id="logTimerField" hidden style="margin-top:16px">
-        <button class="btn btn-green" id="logTimerBtn">Log timer</button>
-      </div>
-
-      <div class="sep">or manual</div>
-
-      <div class="manual-row">
-        <input class="input" id="manualMinutes" type="number" min="0" step="1" placeholder="Min" />
-        <button class="btn btn-ghost" id="logManualBtn">Log manual</button>
-      </div>
-
-      <div style="margin-top:10px">
-        <button class="btn btn-ghost" id="bedNowBtn">Log bedtime now</button>
+      <div class="action-row">
+        <input class="num-input" id="manualMinutes" type="number" min="0" step="1" placeholder="Min" />
+        <button class="pill pill-half pill-ghost" id="logManualBtn">Log manual</button>
       </div>
     </div>
 
-    <div class="card">
-      <div class="section-head">Today</div>
-      <div class="stats" id="stats"></div>
-      <div class="log-list" id="todayLogs"></div>
+    <div class="spacer"></div>
+
+    <div class="section-label">Today</div>
+    <div class="stat-bar" id="stats"></div>
+    <div id="todayLogs"></div>
+
+    <div class="spacer"></div>
+
+    <button class="past-toggle" id="pastToggle">
+      Past 14 days
+      <span class="past-arrow"></span>
+    </button>
+    <div class="past-content" id="pastContent">
+      <div id="pastLogs"></div>
     </div>
 
-    <div class="card">
-      <details id="pastDetails">
-        <summary>Past 14 days</summary>
-        <div id="pastLogs" style="margin-top:12px"></div>
-      </details>
+    <div class="spacer"></div>
+
+    <div class="section-label">Manage</div>
+
+    <div class="manage-group">
+      <div class="manage-head">Quotes</div>
+      <div class="manage-add">
+        <input class="text-input" id="newQuoteInput" placeholder="Add a quote..." />
+        <button class="add-btn" id="addQuoteBtn">+</button>
+      </div>
+      <div id="quoteList"></div>
     </div>
 
-    <div class="footer">
-      <button class="btn" id="exportBtn">Export JSON</button>
+    <div class="manage-group">
+      <div class="manage-head">Metrics</div>
+      <div id="metricManageList"></div>
+    </div>
+
+    <div class="export-area">
+      <button class="export-btn" id="exportBtn">Export JSON</button>
     </div>
   </div>
 
@@ -434,7 +541,11 @@
 
 <script>
 var STORAGE_KEY = 'momentum_logger_v1';
+var PALETTE = ['#4ade80','#fbbf24','#93c5fd','#c4b5fd','#fb923c','#f472b6','#22d3ee','#a3e635','#e879f9','#34d399'];
 var state = { running: false, paused: false, elapsedMs: 0, lastTick: null, wakeLock: null };
+var selectedMetricId = null;
+var currentQuoteIndex = 0;
+var quoteInterval = null;
 
 var $ = function(id) { return document.getElementById(id); };
 var genId = function() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); };
@@ -442,9 +553,7 @@ var esc = function(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').re
 
 function todayISO() {
   var d = new Date();
-  return d.getFullYear() + '-' +
-    String(d.getMonth() + 1).padStart(2, '0') + '-' +
-    String(d.getDate()).padStart(2, '0');
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
 
 function fmtDur(ms) {
@@ -454,21 +563,59 @@ function fmtDur(ms) {
 }
 
 var fmtHm = function(d) { return new Date(d).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); };
-var load = function() { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"logs":[]}'); };
+
+function load() {
+  var data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+  if (!data.logs) data.logs = [];
+  if (!data.metrics) data.metrics = [];
+  if (!data.quotes) data.quotes = [];
+  return data;
+}
 var save = function(d) { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); };
 
-var LABELS = {
-  walking_easy: 'Walking (easy)',
-  walking_intense: 'Walking (intense)',
-  focused_work: 'Focused work',
-  shutdown: 'Shutdown done',
-  bedtime: 'Bedtime'
-};
-
-function lastItem(arr) {
-  return arr.length > 0 ? arr[arr.length - 1] : undefined;
+function getMetricColor(metricId, db) {
+  for (var i = 0; i < db.metrics.length; i++) {
+    if (db.metrics[i].id === metricId) return db.metrics[i].color;
+  }
+  return '#6b6560';
 }
 
+function getMetricName(metricId, db) {
+  for (var i = 0; i < db.metrics.length; i++) {
+    if (db.metrics[i].id === metricId) return db.metrics[i].name;
+  }
+  return metricId;
+}
+
+function hexToSoft(hex) {
+  return hex + '1f';
+}
+
+/* ── Quotes ── */
+function cycleQuote() {
+  var db = load();
+  if (db.quotes.length === 0) {
+    $('quoteDisplay').textContent = '';
+    return;
+  }
+  currentQuoteIndex = currentQuoteIndex % db.quotes.length;
+  var q = db.quotes[currentQuoteIndex];
+  var el = $('quoteDisplay');
+  el.style.opacity = '0';
+  setTimeout(function() {
+    el.textContent = '\u201C' + q + '\u201D';
+    el.style.opacity = '1';
+  }, 400);
+  currentQuoteIndex = (currentQuoteIndex + 1) % db.quotes.length;
+}
+
+function startQuoteRotation() {
+  clearInterval(quoteInterval);
+  cycleQuote();
+  quoteInterval = setInterval(cycleQuote, 15000);
+}
+
+/* ── Timer ── */
 function totalElapsedMs() {
   return state.elapsedMs + (state.running && !state.paused ? Date.now() - state.lastTick : 0);
 }
@@ -476,15 +623,9 @@ function totalElapsedMs() {
 function setTimerText() {
   var ms = totalElapsedMs();
   $('timer').textContent = fmtDur(ms);
-
   var field = $('logTimerField');
   var btn = $('logTimerBtn');
-
-  if (!state.running) {
-    field.hidden = true;
-    return;
-  }
-
+  if (!state.running) { field.hidden = true; return; }
   field.hidden = false;
   var mins = Math.round(ms / 60000);
   if (mins > 0) {
@@ -497,10 +638,7 @@ function setTimerText() {
 }
 
 function tick() {
-  if (state.running && !state.paused) {
-    setTimerText();
-    requestAnimationFrame(tick);
-  }
+  if (state.running && !state.paused) { setTimerText(); requestAnimationFrame(tick); }
 }
 
 function updateTimerUI() {
@@ -508,24 +646,35 @@ function updateTimerUI() {
   $('pauseBtn').hidden = !state.running || state.paused;
   $('resumeBtn').hidden = !state.running || !state.paused;
   $('resetBtn').hidden = !state.running;
-
   var el = $('timer');
   el.classList.toggle('running', state.running && !state.paused);
   el.classList.toggle('paused', state.running && state.paused);
-
   document.body.classList.toggle('fullscreen', state.running && !state.paused);
 }
 
 function resetTimer() {
-  state.running = false;
-  state.paused = false;
-  state.elapsedMs = 0;
-  state.lastTick = null;
-  setTimerText();
-  updateTimerUI();
-  releaseWakeLock();
+  state.running = false; state.paused = false; state.elapsedMs = 0; state.lastTick = null;
+  setTimerText(); updateTimerUI(); releaseWakeLock();
 }
 
+/* ── Wake Lock ── */
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      state.wakeLock = await navigator.wakeLock.request('screen');
+      $('wakelockState').textContent = 'Wake lock on';
+      state.wakeLock.addEventListener('release', function() { $('wakelockState').textContent = 'Wake lock off'; });
+    } else { $('wakelockState').textContent = 'Wake lock unsupported'; }
+  } catch (e) { $('wakelockState').textContent = 'Wake lock blocked'; }
+}
+async function releaseWakeLock() {
+  if (state.wakeLock) { try { await state.wakeLock.release(); } catch (e) {} state.wakeLock = null; $('wakelockState').textContent = 'Wake lock off'; }
+}
+document.addEventListener('visibilitychange', async function() {
+  if (document.visibilityState === 'visible' && state.running && !state.paused) { await requestWakeLock(); tick(); }
+});
+
+/* ── Toast ── */
 var toastTimer = null;
 function showToast(msg) {
   var el = $('toast');
@@ -535,104 +684,138 @@ function showToast(msg) {
   toastTimer = setTimeout(function() { el.classList.remove('show'); }, 2200);
 }
 
-async function requestWakeLock() {
-  try {
-    if ('wakeLock' in navigator) {
-      state.wakeLock = await navigator.wakeLock.request('screen');
-      $('wakelockState').textContent = 'Wake lock on';
-      state.wakeLock.addEventListener('release', function() { $('wakelockState').textContent = 'Wake lock off'; });
-    } else {
-      $('wakelockState').textContent = 'Wake lock unsupported';
-    }
-  } catch (e) { $('wakelockState').textContent = 'Wake lock blocked'; }
-}
-
-async function releaseWakeLock() {
-  if (state.wakeLock) {
-    try { await state.wakeLock.release(); } catch (e) {}
-    state.wakeLock = null;
-    $('wakelockState').textContent = 'Wake lock off';
-  }
-}
-
-document.addEventListener('visibilitychange', async function() {
-  if (document.visibilityState === 'visible' && state.running && !state.paused) {
-    await requestWakeLock();
-    tick();
-  }
-});
-
-function addLog(entry) {
+/* ── Metrics ── */
+function addMetric(name) {
   var db = load();
-  db.logs.push(entry);
+  var color = PALETTE[db.metrics.length % PALETTE.length];
+  var m = { id: genId(), name: name.trim(), color: color };
+  db.metrics.push(m);
   save(db);
-  render();
+  selectedMetricId = m.id;
+  renderAll();
 }
 
-function currentMetric() {
-  var m = $('metric').value;
-  var custom = $('customMetric').value.trim();
-  return {
-    metric: m === 'custom' ? custom || 'Custom' : m,
-    label: m === 'custom' ? custom || 'Custom' : LABELS[m] || m
-  };
+function deleteMetric(id) {
+  var db = load();
+  db.metrics = db.metrics.filter(function(m) { return m.id !== id; });
+  save(db);
+  if (selectedMetricId === id) selectedMetricId = db.metrics.length > 0 ? db.metrics[0].id : null;
+  renderAll();
+}
+
+/* ── Logging ── */
+function addLog(entry) {
+  var db = load(); db.logs.push(entry); save(db); render();
 }
 
 function logFromTimer() {
   var mins = Math.round(totalElapsedMs() / 60000);
   if (mins <= 0) return;
-  var cm = currentMetric();
-  addLog({ id: genId(), ts: new Date().toISOString(), day: todayISO(), metric: cm.metric, label: cm.label, minutes: mins, notes: $('notes').value.trim(), source: 'timer' });
-  showToast(cm.label + ' \u00B7 ' + mins + 'm logged');
+  if (!selectedMetricId) { showToast('Select a metric first'); return; }
+  var db = load();
+  var name = getMetricName(selectedMetricId, db);
+  addLog({ id: genId(), ts: new Date().toISOString(), day: todayISO(), metric: selectedMetricId, label: name, minutes: mins, notes: $('notes').value.trim(), source: 'timer' });
+  showToast(name + ' \u00B7 ' + mins + 'm logged');
   $('notes').value = '';
   resetTimer();
 }
 
 function logManual() {
-  var cm = currentMetric();
+  if (!selectedMetricId) { showToast('Select a metric first'); return; }
+  var db = load();
+  var name = getMetricName(selectedMetricId, db);
   var mins = Math.max(0, Number($('manualMinutes').value || 0));
-  addLog({ id: genId(), ts: new Date().toISOString(), day: todayISO(), metric: cm.metric, label: cm.label, minutes: mins, notes: $('notes').value.trim(), source: 'manual' });
-  showToast(cm.label + (mins ? ' \u00B7 ' + mins + 'm' : '') + ' logged');
+  addLog({ id: genId(), ts: new Date().toISOString(), day: todayISO(), metric: selectedMetricId, label: name, minutes: mins, notes: $('notes').value.trim(), source: 'manual' });
+  showToast(name + (mins ? ' \u00B7 ' + mins + 'm' : '') + ' logged');
   $('manualMinutes').value = '';
   $('notes').value = '';
 }
 
-function logBedNow() {
-  addLog({ id: genId(), ts: new Date().toISOString(), day: todayISO(), metric: 'bedtime', label: 'Bedtime', minutes: 0, notes: '', source: 'manual' });
-  showToast('Bedtime logged \u00B7 ' + fmtHm(new Date().toISOString()));
+/* ── Quotes management ── */
+function addQuote(text) {
+  var db = load();
+  db.quotes.push(text.trim());
+  save(db);
+  startQuoteRotation();
+  renderManage();
+}
+
+function deleteQuote(index) {
+  var db = load();
+  db.quotes.splice(index, 1);
+  save(db);
+  if (currentQuoteIndex >= db.quotes.length) currentQuoteIndex = 0;
+  startQuoteRotation();
+  renderManage();
+}
+
+/* ── Render ── */
+function renderChips() {
+  var db = load();
+  var html = db.metrics.map(function(m) {
+    var active = m.id === selectedMetricId ? ' active' : '';
+    return '<button class="chip' + active + '" data-metric-id="' + m.id + '">' + esc(m.name) + '</button>';
+  }).join('');
+  html += '<button class="chip chip-add" id="addChipBtn">+</button>';
+  $('metricChips').innerHTML = html;
+}
+
+function renderManage() {
+  var db = load();
+  $('quoteList').innerHTML = db.quotes.length === 0 ? '<div class="manage-empty">No quotes yet</div>' :
+    db.quotes.map(function(q, i) {
+      return '<div class="manage-item"><span class="manage-text">\u201C' + esc(q) + '\u201D</span><button class="del-btn" data-del-quote="' + i + '">\u00D7</button></div>';
+    }).join('');
+
+  $('metricManageList').innerHTML = db.metrics.length === 0 ? '<div class="manage-empty">No metrics \u2014 tap + above to create one</div>' :
+    db.metrics.map(function(m) {
+      return '<div class="manage-item"><span class="manage-dot" style="background:' + m.color + '"></span><span class="manage-text">' + esc(m.name) + '</span><button class="del-btn" data-del-metric="' + m.id + '">\u00D7</button></div>';
+    }).join('');
 }
 
 function render() {
   $('datePill').textContent = new Date().toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
-
   var db = load();
   var today = todayISO();
   var todayLogs = db.logs.filter(function(x) { return x.day === today; }).sort(function(a, b) { return a.ts.localeCompare(b.ts); });
 
-  var sum = function(name) { return todayLogs.filter(function(x) { return x.metric === name; }).reduce(function(a, b) { return a + (b.minutes || 0); }, 0); };
-  var bedArr = todayLogs.filter(function(x) { return x.metric === 'bedtime'; });
-  var bed = lastItem(bedArr);
+  // Stats
+  var totals = {};
+  todayLogs.forEach(function(l) { totals[l.metric] = (totals[l.metric] || 0) + (l.minutes || 0); });
 
-  $('stats').innerHTML =
-    '<div class="stat easy"><div class="stat-label">Easy</div><div class="stat-value">' + sum('walking_easy') + 'm</div></div>' +
-    '<div class="stat intense"><div class="stat-label">Intense</div><div class="stat-value">' + sum('walking_intense') + 'm</div></div>' +
-    '<div class="stat focus"><div class="stat-label">Focus</div><div class="stat-value">' + sum('focused_work') + 'm</div></div>' +
-    '<div class="stat bed"><div class="stat-label">Bedtime</div><div class="stat-value">' + (bed ? fmtHm(bed.ts) : '\u2014') + '</div></div>';
+  var statsHtml = '';
+  Object.keys(totals).forEach(function(mid) {
+    var color = getMetricColor(mid, db);
+    var name = getMetricName(mid, db);
+    var label = totals[mid] > 0 ? totals[mid] + 'm ' + name : name;
+    statsHtml += '<span class="stat-badge" style="background:' + hexToSoft(color) + ';color:' + color + '"><span class="stat-dot"></span> ' + esc(label) + '</span>';
+  });
+  // Also show metrics with timestamp-only entries (0 mins)
+  todayLogs.forEach(function(l) {
+    if (!totals[l.metric] && l.minutes === 0) {
+      var color = getMetricColor(l.metric, db);
+      statsHtml += '<span class="stat-badge" style="background:' + hexToSoft(color) + ';color:' + color + '"><span class="stat-dot"></span> ' + esc(l.label) + ' ' + fmtHm(l.ts) + '</span>';
+    }
+  });
+  $('stats').innerHTML = statsHtml || '';
 
+  // Today entries
   if (todayLogs.length === 0) {
     $('todayLogs').innerHTML = '<div class="empty">No logs yet today</div>';
   } else {
     $('todayLogs').innerHTML = todayLogs.map(function(l) {
-      return '<div class="log-entry">' +
-        '<span class="log-time">' + fmtHm(l.ts) + '</span>' +
-        '<div class="log-body"><div class="log-metric">' + esc(l.label) + '</div>' +
-        (l.notes ? '<div class="log-note">' + esc(l.notes) + '</div>' : '') +
-        '</div>' +
-        (l.minutes ? '<span class="log-mins">' + l.minutes + 'm</span>' : '') +
-      '</div>';
+      var color = getMetricColor(l.metric, db);
+      return '<div class="entry">' +
+        '<div class="entry-bar" style="background:' + color + '"></div>' +
+        '<div class="entry-body"><div class="entry-title">' + esc(l.label) + '</div>' +
+        (l.notes ? '<div class="entry-note">' + esc(l.notes) + '</div>' : '') + '</div>' +
+        '<div class="entry-meta">' +
+        (l.minutes ? '<div class="entry-mins">' + l.minutes + 'm</div>' : '') +
+        '<div class="entry-time">' + fmtHm(l.ts) + '</div></div></div>';
     }).join('');
   }
 
+  // Past days
   var grouped = {};
   db.logs.forEach(function(l) { if (l.day !== today) { (grouped[l.day] = grouped[l.day] || []).push(l); } });
   var pastDays = Object.keys(grouped).sort().reverse().slice(0, 14);
@@ -642,65 +825,122 @@ function render() {
   } else {
     $('pastLogs').innerHTML = pastDays.map(function(d) {
       var arr = grouped[d];
-      var e = arr.filter(function(x) { return x.metric === 'walking_easy'; }).reduce(function(a, b) { return a + (b.minutes || 0); }, 0);
-      var i = arr.filter(function(x) { return x.metric === 'walking_intense'; }).reduce(function(a, b) { return a + (b.minutes || 0); }, 0);
-      var f = arr.filter(function(x) { return x.metric === 'focused_work'; }).reduce(function(a, b) { return a + (b.minutes || 0); }, 0);
-      var bArr = arr.filter(function(x) { return x.metric === 'bedtime'; });
-      var b = lastItem(bArr);
-      return '<div class="past-entry"><div class="past-date">' + d + '</div>' +
-        '<div class="past-summary">Easy ' + e + 'm \u00B7 Intense ' + i + 'm \u00B7 Focus ' + f + 'm \u00B7 Bed ' + (b ? fmtHm(b.ts) : '\u2014') + '</div></div>';
+      var sums = {};
+      arr.forEach(function(l) {
+        if (!sums[l.label]) sums[l.label] = 0;
+        sums[l.label] += l.minutes || 0;
+      });
+      var parts = Object.keys(sums).map(function(name) {
+        return name + ' ' + sums[name] + 'm';
+      });
+      return '<div class="past-day"><div class="past-day-date">' + d + '</div>' +
+        '<div class="past-day-stats">' + (parts.join(' \u00B7 ') || 'No data') + '</div></div>';
     }).join('');
   }
 }
 
-$('metric').addEventListener('change', function() { $('customWrap').hidden = $('metric').value !== 'custom'; });
+function renderAll() {
+  renderChips();
+  renderManage();
+  render();
+}
 
+/* ── Events ── */
+
+// Chip selection & add
+$('metricChips').addEventListener('click', function(e) {
+  var chip = e.target.closest('[data-metric-id]');
+  if (chip) {
+    selectedMetricId = chip.getAttribute('data-metric-id');
+    renderChips();
+    return;
+  }
+  if (e.target.id === 'addChipBtn' || e.target.closest('#addChipBtn')) {
+    $('chipInputWrap').hidden = false;
+    $('newMetricInput').focus();
+  }
+});
+
+$('newMetricInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && this.value.trim()) {
+    addMetric(this.value);
+    this.value = '';
+    $('chipInputWrap').hidden = true;
+  }
+  if (e.key === 'Escape') {
+    this.value = '';
+    $('chipInputWrap').hidden = true;
+  }
+});
+
+$('newMetricInput').addEventListener('blur', function() {
+  if (this.value.trim()) {
+    addMetric(this.value);
+    this.value = '';
+  }
+  $('chipInputWrap').hidden = true;
+});
+
+// Quotes
+$('addQuoteBtn').addEventListener('click', function() {
+  var input = $('newQuoteInput');
+  if (input.value.trim()) { addQuote(input.value); input.value = ''; }
+});
+$('newQuoteInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && this.value.trim()) { addQuote(this.value); this.value = ''; }
+});
+
+// Delete (event delegation)
+document.addEventListener('click', function(e) {
+  var delQuote = e.target.closest('[data-del-quote]');
+  if (delQuote) { deleteQuote(Number(delQuote.getAttribute('data-del-quote'))); return; }
+  var delMetric = e.target.closest('[data-del-metric]');
+  if (delMetric) { deleteMetric(delMetric.getAttribute('data-del-metric')); return; }
+});
+
+// Timer
 $('startBtn').addEventListener('click', async function() {
   if (state.running) return;
-  state.running = true;
-  state.paused = false;
-  state.lastTick = Date.now();
-  updateTimerUI();
-  await requestWakeLock();
-  tick();
+  state.running = true; state.paused = false; state.lastTick = Date.now();
+  updateTimerUI(); await requestWakeLock(); tick();
 });
-
 $('pauseBtn').addEventListener('click', async function() {
   if (!state.running || state.paused) return;
-  state.elapsedMs += Date.now() - state.lastTick;
-  state.paused = true;
-  setTimerText();
-  updateTimerUI();
-  await releaseWakeLock();
+  state.elapsedMs += Date.now() - state.lastTick; state.paused = true;
+  setTimerText(); updateTimerUI(); await releaseWakeLock();
 });
-
 $('resumeBtn').addEventListener('click', async function() {
   if (!state.running || !state.paused) return;
-  state.paused = false;
-  state.lastTick = Date.now();
-  updateTimerUI();
-  await requestWakeLock();
-  tick();
+  state.paused = false; state.lastTick = Date.now();
+  updateTimerUI(); await requestWakeLock(); tick();
 });
-
 $('resetBtn').addEventListener('click', resetTimer);
 $('logTimerBtn').addEventListener('click', logFromTimer);
 $('logManualBtn').addEventListener('click', logManual);
-$('bedNowBtn').addEventListener('click', logBedNow);
 
-$('exportBtn').addEventListener('click', function() {
-  var blob = new Blob([JSON.stringify(load(), null, 2)], { type: 'application/json' });
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'momentum-' + todayISO() + '.json';
-  a.click();
+// Past days toggle
+$('pastToggle').addEventListener('click', function() {
+  this.classList.toggle('open');
+  $('pastContent').classList.toggle('open');
 });
 
+// Export
+$('exportBtn').addEventListener('click', function() {
+  var blob = new Blob([JSON.stringify(load(), null, 2)], { type: 'application/json' });
+  var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'momentum-' + todayISO() + '.json'; a.click();
+});
+
+// SW
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(function() {});
 
-render();
+// Init
+var db = load();
+if (db.metrics.length > 0) selectedMetricId = db.metrics[0].id;
+renderAll();
 setTimerText();
 updateTimerUI();
+startQuoteRotation();
 </script>
 </body>
 </html>
